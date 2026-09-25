@@ -21,6 +21,9 @@
 /* Individual mood portraits replace the old contact-sheet coordinates. */
 .character-art.hero-art[class*="mood-"],.character-art.card-art[class*="mood-"]{background-size:cover;background-position:center 16%}
 @media(max-width:420px){.character-art.hero-art[class*="mood-"],.character-art.card-art[class*="mood-"]{background-position:center 16%}}
+/* Nadi's profile portrait needs a left-anchored crop to retain her full face outline. */
+.navigator-compare .character-art.card-art.nadi.mood-neutral{background-position:left 14%}
+@media(max-width:420px){.navigator-compare .character-art.card-art.nadi.mood-neutral{background-position:left 14%}}
 
 /* The lesson coach follows the content instead of covering the final card. */
 .lesson-page{padding-bottom:24px}
