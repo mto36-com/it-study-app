@@ -5,9 +5,9 @@ const LEVELS=[
   {level:6,xp:880},{level:7,xp:1120},{level:8,xp:1380},{level:9,xp:1660},{level:10,xp:1960}
 ];
 const CHARACTERS={
-  rei:{name:'レイ',role:'クールな戦闘女子',color:'orange',tag:'短く、強く。たまに優しい',style:'短く鋭い。次へ進ませる',fit:'テンポよく集中したい人',lines:{idle:['知識は、次の一手を強くする。','準備はいい？ 行こう。'],correct:['いい。そのまま行こう。','正解。キレてる。'],wrong:['大丈夫。次で取り返す。'],complete:['やるじゃん。次も行こう。']}},
-  zack:{name:'ザック',role:'甘マスク武装男子',color:'blue',tag:'余裕のある兄貴。安心させる',style:'多く語らず、ゆったり包む',fit:'焦らず自分のペースで続けたい人',lines:{idle:['焦らなくていい。考える時間はある。','今日も来たか。えらいじゃん。'],correct:["Yeah. That's it.",'その調子だ。'],wrong:['大丈夫。もう一回いこう。','まだ終わってない。ここからだ。'],complete:['いいね。その調子、続けよう。']}},
-  nadi:{name:'ナディ',role:'ダーク武装ペガサス系女子',color:'purple',tag:'クールな見た目で、めちゃくちゃ褒める',style:'小さな頑張りも見逃さず認める',fit:'たくさん褒められながら続けたい人',lines:{idle:['ここに来ただけでも素敵だよ。','今日の一歩、もう始まってるよ。'],correct:['すごい！ちゃんと力がついてるよ。','完璧！今の判断、とっても良かった。'],wrong:['大丈夫。挑戦したことがもうすごいよ。'],complete:['ここまで本当によく頑張ったね！']}},
+  rei:{name:'レイ',role:'キャラ１',color:'orange',tag:'短く、強く。たまに優しい',style:'短く鋭い。次へ進ませる',fit:'テンポよく集中したい人',lines:{idle:['知識は、次の一手を強くする。','準備はいい？ 行こう。'],correct:['いい。そのまま行こう。','正解。キレてる。'],wrong:['大丈夫。次で取り返す。'],complete:['やるじゃん。次も行こう。']}},
+  zack:{name:'ザック',role:'キャラ２',color:'blue',tag:'余裕のある兄キャラ',style:'多く語らず、ゆったり包む',fit:'焦らず自分のペースで続けたい人',lines:{idle:['焦らなくていい。考える時間はある。','今日も来たか。えらいじゃん。'],correct:["Yeah. That's it.",'その調子だ。'],wrong:['大丈夫。もう一回いこう。','まだ終わってない。ここからだ。'],complete:['いいね。その調子、続けよう。']}},
+  nadi:{name:'ナディ',role:'キャラ３',color:'purple',tag:'クールな見た目で、めちゃくちゃ褒める',style:'小さな頑張りも見逃さず認める',fit:'たくさん褒められながら続けたい人',lines:{idle:['ここに来ただけでも素敵だよ。','今日の一歩、もう始まってるよ。'],correct:['すごい！ちゃんと力がついてるよ。','完璧！今の判断、とっても良かった。'],wrong:['大丈夫。挑戦したことがもうすごいよ。'],complete:['ここまで本当によく頑張ったね！']}},
 };
 const REWARD_NAMES={2:'ストリートジャケット',3:'タクティカル武器',4:'軽装バトルウェア',5:'強化アーマー',6:'トレーニングウェア',7:'レア武器',8:'特別カラー',9:'上位戦闘装備',10:'模擬テスト記念エンブレム'};
 const fresh=()=>({xp:0,answered:0,correct:0,completed:[],history:{},achievements:[],selected:'rei',companionChosen:false,lastStudy:null,streak:0,unlocked:[],session:null,bgm:true,volume:DEFAULT_VOLUME,audioVersion:AUDIO_VERSION});
@@ -82,10 +82,10 @@ function companionChance(kind){
   return .32;
 }
 function shouldShowCompanion(kind='idle'){
-  const chance=companionChance(kind),situation=kind==='idle'?(screen==='quiz'?'next':homeVoiceSituation()):kind;
-  const key=`${state.selected}|${screen}|${situation}|${state.answered}|${state.session?.index||0}`;
-  const hash=[...key].reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,2166136261);
-  return hash%1000<chance*1000;
+  // Outside a mission the selected navigator remains visible. During a
+  // mission each newly rendered scene gets a fresh, intentionally irregular roll.
+  if(!isMissionScreen())return true;
+  return Math.random()<companionChance(kind);
 }
 function characterArt(id=state.selected,variant='main'){const pose=(state.answered+state.completed.length+level())%4,hidden=variant==='coach-art'&&!shouldShowCompanion('idle')?' hidden':'';return `<div class="character-art ${id} ${variant} pose-${pose}${hidden}" role="img" aria-label="${character(id).name}"></div>`}
 function companionSpot(kind='idle'){if(!shouldShowCompanion(kind))return '';const place=(state.answered+state.completed.length)%2?'top':'bottom';return `<aside class="companion-spot ${place} ${state.selected}">${characterArt(state.selected,'spot')}<div><small>${character().name}</small><p>「${pickLine(kind)}」</p></div></aside>`}
