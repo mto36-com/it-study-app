@@ -18,6 +18,10 @@
 .character-art.card-art.nadi{background-position:-252px -563px}
 @media(max-width:420px){.character-art.hero-art{right:-18px;width:174px}.character-art.hero-art.rei{background-position:-336px -22px}.character-art.hero-art.zack{background-position:-326px -420px}.character-art.hero-art.nadi{background-position:-356px -842px}.character-art.card-art.nadi{background-position:-246px -563px}}
 
+/* Individual mood portraits replace the old contact-sheet coordinates. */
+.character-art.hero-art[class*="mood-"],.character-art.card-art[class*="mood-"]{background-size:cover;background-position:center 16%}
+@media(max-width:420px){.character-art.hero-art[class*="mood-"],.character-art.card-art[class*="mood-"]{background-position:center 16%}}
+
 /* The lesson coach follows the content instead of covering the final card. */
 .lesson-page{padding-bottom:24px}
 .lesson-footer{position:static;left:auto;bottom:auto;transform:none;width:auto;margin:24px -20px -24px;padding:18px 20px calc(92px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#101217,#151820);border-top:1px solid #303541}
