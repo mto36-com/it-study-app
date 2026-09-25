@@ -39,6 +39,7 @@ const xpToNext=()=>{const next=LEVELS.find(x=>x.level===level()+1);return next?n
 const levelProgress=()=>{const current=LEVELS.find(x=>x.level===level()),next=LEVELS.find(x=>x.level===level()+1);return next?Math.min(100,(state.xp-current.xp)/(next.xp-current.xp)*100):100};
 const topic=()=>TOPICS[state.completed.length%TOPICS.length];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dialogueText=s=>esc(s).replace(/([\u30a1-\u30f6\u30fc]{2,}|[A-Za-z0-9][A-Za-z0-9.+#-]*)/g,'<span class="no-break">$1</span>');
 const regexEscape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const readingPattern=new RegExp(Object.keys(READING_GUIDE).sort((a,b)=>b.length-a.length).map(regexEscape).join('|'),'g');
 const studyText=s=>esc(s).replace(readingPattern,term=>`<ruby>${term}<rp>（</rp><rt>${READING_GUIDE[term]}</rt><rp>）</rp></ruby>`);
@@ -67,7 +68,7 @@ function pickLine(kind='visit'){
   const situation={idle:idleSituation,complete:state.session?.levelUps?.length?'levelUp':'nextLevel'}[kind]||kind;
   const lines=VOICE_TANK?.[state.selected]?.[situation]||character().lines[kind]||character().lines.idle;
   const salt=[...situation].reduce((n,c)=>n+c.charCodeAt(0),0);
-  return lines[(state.answered+state.completed.length+state.streak+salt)%lines.length];
+  return dialogueText(lines[(state.answered+state.completed.length+state.streak+salt)%lines.length]);
 }
 function answerRun(correct=true){let n=0;for(const a of [...(state.session?.answers||[])].reverse()){if(a.correct!==correct)break;n++}return n}
 function companionChance(kind){
