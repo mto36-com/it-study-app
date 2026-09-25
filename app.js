@@ -92,16 +92,25 @@ function shouldShowCompanion(kind='idle'){
 const POSE_BY_MOOD={neutral:0,thinking:1,down:2,cheer:3};
 function moodForSituation(kind='idle'){
   if(kind==='wrong')return 'down';
-  if(['correct','comebackCorrect','memoryCorrect','complete','levelUp'].includes(kind))return 'cheer';
+  if(['complete','levelUp'].includes(kind))return 'cheer';
+  if(['correct','comebackCorrect','memoryCorrect'].includes(kind)){
+    const correctMoods=['cheer','neutral','thinking'];
+    return correctMoods[(Math.max(1,answerRun(true))-1)%correctMoods.length];
+  }
   if(['weakUnit','mockExam','next'].includes(kind)||screen==='quiz'||screen==='lesson')return 'thinking';
   return 'neutral';
 }
 function characterArt(id=state.selected,variant='main',mood='neutral'){
   // The compact crops are deliberately head-and-shoulders only: keep at least
   // half of the face visible and never reach the chest logo area.
-  const pose=POSE_BY_MOOD[mood]??POSE_BY_MOOD.neutral;
+  let resolvedMood=mood;
+  if(screen==='home'&&mood==='neutral'){
+    if(variant==='spot')resolvedMood='thinking';
+    if(variant==='hero-art')resolvedMood='cheer';
+  }
+  const pose=POSE_BY_MOOD[resolvedMood]??POSE_BY_MOOD.neutral;
   const hidden=variant==='coach-art'&&!shouldShowCompanion('idle')?' hidden':'';
-  return `<div class="character-art ${id} ${variant} pose-${pose} mood-${mood}${hidden}" role="img" aria-label="${character(id).name}（${mood}）"></div>`;
+  return `<div class="character-art ${id} ${variant} pose-${pose} mood-${resolvedMood}${hidden}" role="img" aria-label="${character(id).name}（${resolvedMood}）"></div>`;
 }
 function companionFace(kind='idle'){if(!shouldShowCompanion(kind))return '';const mood=moodForSituation(kind);return `<aside class="feedback-companion ${state.selected}" data-mood="${mood}">${characterArt(state.selected,'feedback-face',mood)}</aside>`}
 function companionSpot(kind='idle'){if(!shouldShowCompanion(kind))return '';const place=(state.answered+state.completed.length)%2?'top':'bottom',mood=moodForSituation(kind);return `<aside class="companion-spot ${place} ${state.selected}" data-mood="${mood}">${characterArt(state.selected,'spot',mood)}<div><small>${character().name}</small><p>「${pickLine(kind)}」</p></div></aside>`}
