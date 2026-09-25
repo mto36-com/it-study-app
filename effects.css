@@ -28,3 +28,10 @@
 /* The lesson coach follows the content instead of covering the final card. */
 .lesson-page{padding-bottom:24px}
 .lesson-footer{position:static;left:auto;bottom:auto;transform:none;width:auto;margin:24px -20px -24px;padding:18px 20px calc(92px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#101217,#151820);border-top:1px solid #303541}
+
+/* During answer feedback, keep the companion present but visually quiet. */
+.feedback{position:relative}
+.feedback-companion{position:absolute;z-index:2;top:48px;right:24px;width:96px;height:96px;border:1px solid #ffffff24;border-radius:50%;overflow:hidden;box-shadow:0 10px 28px #0008,0 0 18px #40d8d022;pointer-events:none}
+.feedback.bad .feedback-companion{border-color:#ff604566;box-shadow:0 10px 28px #0008,0 0 18px #ff604522}
+.character-art.feedback-face[class*="mood-"]{width:100%;height:100%;border-radius:50%;background-size:cover;background-position:center 12%}
+@media(max-width:380px){.feedback-companion{top:50px;right:18px;width:84px;height:84px}}
