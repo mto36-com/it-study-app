@@ -9,3 +9,15 @@
 @keyframes perfect-sparkle{0%{opacity:0;transform:scale(.55)}22%{opacity:1}62%{opacity:.85;transform:scale(1.08)}100%{opacity:0;transform:scale(1.3)}}
 @keyframes perfect-star{0%{transform:scale(.65) rotate(-22deg)}28%{transform:scale(1.25) rotate(12deg)}62%{transform:scale(.96) rotate(-4deg)}100%{transform:scale(1) rotate(0)}}
 @media(prefers-reduced-motion:reduce){.perfect-clear:before,.perfect-clear:after,.perfect-clear .celebrate{animation-duration:.01ms}}
+
+/* Character crop corrections: keep the face inside the mission frame. */
+.character-art.hero-art{right:-8px;width:190px}
+.character-art.hero-art.rei{background-position:-330px -22px}
+.character-art.hero-art.zack{background-position:-320px -420px}
+.character-art.hero-art.nadi{background-position:-350px -842px}
+.character-art.card-art.nadi{background-position:-252px -563px}
+@media(max-width:420px){.character-art.hero-art{right:-18px;width:174px}.character-art.hero-art.rei{background-position:-336px -22px}.character-art.hero-art.zack{background-position:-326px -420px}.character-art.hero-art.nadi{background-position:-356px -842px}.character-art.card-art.nadi{background-position:-246px -563px}}
+
+/* The lesson coach follows the content instead of covering the final card. */
+.lesson-page{padding-bottom:24px}
+.lesson-footer{position:static;left:auto;bottom:auto;transform:none;width:auto;margin:24px -20px -24px;padding:18px 20px calc(92px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#101217,#151820);border-top:1px solid #303541}
