@@ -147,17 +147,32 @@ function pastPageImage(exam,page,format='jpg'){return `assets/past-exams/pages/$
 function pastExam(){const s=state.pastSession,exam=currentPastExam(),n=s.index+1,domain=pastDomain(n),answered=s.answers.filter(Boolean).length,page=Math.max(1,Math.min(exam.pages,s.pdfPage||1));s.pdfPage=page;return `<div class="past-page past-taking"><header><button class="back" data-action="past-quit">×</button><div class="quiz-progress"><span>${exam.year}年　公式過去問</span><div><i id="past-progress" style="width:${answered}%"></i></div></div><b id="past-answered-top">${answered}<small>/100回答</small></b></header><main class="past-split"><section class="pdf-pane" aria-label="問題冊子"><div class="pdf-toolbar"><button data-pdf-move="-1" ${page===1?'disabled':''}>‹ 前のページ</button><span><b id="pdf-page-number">${page}</b> / ${exam.pages}</span><button data-pdf-move="1" ${page===exam.pages?'disabled':''}>次のページ ›</button></div><div class="pdf-window" tabindex="0"><div id="pdf-load-error" class="pdf-load-error hidden"><b>問題ページを表示できませんでした</b><p>ページ画像をもう一度読み込みます。</p><button data-action="pdf-retry">再読み込み</button></div><picture id="past-pdf-picture"><img id="past-pdf-page" src="${pastPageImage(exam,page)}" alt="${exam.year}年度 問題冊子 ${page}ページ"></picture></div></section><section class="answer-pane"><div class="answer-pane-head"><div><span class="lesson-label">${domain}</span><h1>問 ${n}</h1></div><small>上の冊子から問${n}を確認</small></div><div class="past-answer"><p class="hint">回答を1つ選ぶ</p><div class="answer-letters">${['A','B','C','D'].map((letter,i)=>`<button class="${s.answers[s.index]===letter?'selected':''}" data-past-answer="${letter}"><span>${'アイウエ'[i]}</span><small>${letter}</small></button>`).join('')}</div></div><div class="past-nav"><button class="outline" data-past-move="-1" ${s.index===0?'disabled':''}>‹ 前の問題</button><button class="outline" data-past-move="1" ${s.index===99?'disabled':''}>次の問題 ›</button></div><details class="number-jump"><summary>問題番号から移動（回答済み <span id="past-answered-inline">${answered}</span>問）</summary><div>${Array.from({length:100},(_,i)=>`<button class="${s.answers[i]?'answered':''} ${i===s.index?'current':''}" data-past-index="${i}">${i+1}</button>`).join('')}</div></details><button class="primary" data-action="past-finish">採点する <b>›</b></button><p class="past-save-note">問題ページと回答位置は別々に保存されます。</p></section></main></div>`}
 function showPastPdfError(show){document.querySelector('#pdf-load-error')?.classList.toggle('hidden',!show);document.querySelector('#past-pdf-picture')?.classList.toggle('hidden',show)}
 function bindPastPdfViewer(){
-  const image=document.querySelector('#past-pdf-page'),retry=document.querySelector('[data-action="pdf-retry"]');
+  const image=document.querySelector('#past-pdf-page'),windowEl=document.querySelector('.pdf-window'),picture=document.querySelector('#past-pdf-picture'),retry=document.querySelector('[data-action="pdf-retry"]');
   if(!image)return;
+  let zoom=1,pinchStart=null;
+  const setZoom=value=>{
+    zoom=Math.max(1,Math.min(3,value));
+    if(picture)picture.style.width=`${zoom*100}%`;
+  };
+  const touchDistance=touches=>Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY);
   image.addEventListener('load',()=>showPastPdfError(false));
   image.addEventListener('error',()=>showPastPdfError(true));
+  image.addEventListener('touchstart',event=>{
+    if(event.touches.length===2)pinchStart={distance:touchDistance(event.touches),zoom};
+  },{passive:true});
+  image.addEventListener('touchmove',event=>{
+    if(event.touches.length!==2||!pinchStart)return;
+    event.preventDefault();
+    setZoom(pinchStart.zoom*touchDistance(event.touches)/pinchStart.distance);
+  },{passive:false});
+  image.addEventListener('touchend',event=>{if(event.touches.length<2)pinchStart=null},{passive:true});
   document.querySelectorAll('[data-pdf-move]').forEach(button=>button.onclick=()=>{
     const s=state.pastSession,exam=currentPastExam();
     s.pdfPage=Math.max(1,Math.min(exam.pages,(s.pdfPage||1)+(+button.dataset.pdfMove)));
     s.pdfScrollTop=0;save();showPastPdfError(false);
     image.src=pastPageImage(exam,s.pdfPage);
     image.alt=`${exam.year}年度 問題冊子 ${s.pdfPage}ページ`;
-    const label=document.querySelector('#pdf-page-number'),windowEl=document.querySelector('.pdf-window');
+    const label=document.querySelector('#pdf-page-number');
     if(label)label.textContent=s.pdfPage;if(windowEl)windowEl.scrollTop=0;
     document.querySelectorAll('[data-pdf-move]').forEach(x=>x.disabled=(+x.dataset.pdfMove<0?s.pdfPage===1:s.pdfPage===exam.pages));
   });
