@@ -1,7 +1,8 @@
 // 学習範囲の基準。用語追加時はIPAの現行シラバスと公開問題を優先して確認します。
 const CONTENT_REFERENCE = {
   syllabus:'ITパスポート試験シラバス Ver.6.5',
-  checkedAt:'2026-09-24',
+  checkedAt:'2026-09-30',
+  reviewedPublicExam:'令和6年度 ITパスポート試験 公開問題',
   syllabusUrl:'https://www.ipa.go.jp/shiken/syllabus/gaiyou.html',
   publicQuestionsUrl:'https://www.ipa.go.jp/shiken/mondai-kaiotu/index.html'
 };
@@ -25,7 +26,7 @@ const TOPICS = [
   {id:'development', title:'システム開発', category:'マネジメント', terms:['要件定義','外部設計','内部設計','単体テスト','結合テスト','アジャイル'], example:'誰の視点で何を決め、どの範囲を試す工程かを見分けます。', summary:'企画から運用までの工程と、開発手法・テストの役割を学びます。'},
   {id:'service', title:'サービスマネジメント', category:'マネジメント', terms:['SLA','インシデント管理','問題管理','変更管理','可用性管理','サービスデスク'], example:'止まったサービスを早く戻す活動と、根本原因を除く活動は別です。', summary:'利用者へ安定したITサービスを提供し、継続的に改善する仕組みを学びます。'},
   {id:'audit', title:'システム監査と内部統制', category:'マネジメント', terms:['システム監査','監査証拠','監査調書','内部統制','職務分掌','モニタリング'], example:'監査人は独立した立場で証拠を集め、事実に基づいて評価します。', summary:'監査の独立性・客観性と、内部統制を整える側との違いを学びます。'}
-];
+].map((topic,index)=>({...topic,level:index<16?Math.floor(index/2)+1:index-7}));
 
 // 予習・解説専用の読み方。問題文と選択肢には表示しません。
 // 英字略語は、日本のIT現場で一般的な読みを優先しています。
@@ -412,7 +413,46 @@ const QUESTIONS = [
 ['service','サービス提供者と利用者が合意するサービス水準は？',['SLA','WBS','QCD','PERT'],0,'SLAには稼働率や応答時間など、合意したサービス水準を記載します。'],
 ['audit','システム監査人に特に求められる立場は？',['独立した立場','開発責任者の立場','運用担当者の立場','販売担当者の立場'],0,'監査人は対象業務から独立し、客観的に評価できる立場を保つ必要があります。'],
 ['audit','申請・承認・実行・記録を別の人へ分ける統制は？',['職務分掌','モニタリング','インシデント管理','バックアップ'],0,'職務分掌は権限や役割を分け、一人で不正を完結しにくくする統制です。']
-].map((q,i)=>({id:`q${i+1}`,topicId:q[0],question:q[1],options:q[2],correctAnswer:q[3],shortExplanation:q[4],detailedExplanation:q[4],difficulty:1}));
+].map((q,i)=>({id:`q${i+1}`,topicId:q[0],question:q[1],options:q[2],correctAnswer:q[3],shortExplanation:q[4],detailedExplanation:q[4],difficulty:1,level:TOPICS.find(t=>t.id===q[0]).level}));
+
+// 各テーマに「用語の確認 → 仕組みの比較 → 選択肢判断」の練習を用意します。
+// 問題文はIPA公開問題の転載ではなく、現行シラバスの用語と本アプリの解説を基にしたオリジナルです。
+function buildPracticeQuestions(){
+  const bank=[];
+  TOPICS.forEach(topic=>{
+    const terms=topic.terms.filter(term=>TERM_DEFINITIONS[term]);
+    terms.forEach((term,index)=>{
+      const otherTerms=terms.filter(x=>x!==term);
+      const distractorTerms=[0,1,2].map(offset=>otherTerms[(index+offset)%otherTerms.length]);
+      const definition=TERM_DEFINITIONS[term];
+      const stage=topic.level<=2?'用語の確認':topic.level<=5?'仕組みの比較':topic.level<=8?'計算・事例判断':'過去問形式の選択肢判断';
+      bank.push({
+        id:`pq-${topic.id}-${index}-term`,topicId:topic.id,level:topic.level,difficulty:1,
+        question:`次の説明に当てはまる用語はどれか。「${definition}」`,
+        options:[term,...distractorTerms],correctAnswer:0,
+        shortExplanation:`正解は「${term}」です。`,
+        detailedExplanation:`${stage}の問題です。${definition}`
+      });
+      bank.push({
+        id:`pq-${topic.id}-${index}-meaning`,topicId:topic.id,level:topic.level,difficulty:2,
+        question:`「${term}」の説明として最も適切なものはどれか。`,
+        options:[definition,...distractorTerms.map(x=>TERM_DEFINITIONS[x])],correctAnswer:0,
+        shortExplanation:definition,
+        detailedExplanation:`${stage}では、似た用語を役割の違いで分けます。${definition}`
+      });
+      bank.push({
+        id:`pq-${topic.id}-${index}-pair`,topicId:topic.id,level:topic.level,difficulty:3,
+        question:'用語と説明の組合せとして、適切なものはどれか。',
+        options:[`${term} — ${definition}`,...distractorTerms.map((x,i)=>`${x} — ${TERM_DEFINITIONS[distractorTerms[(i+1)%distractorTerms.length]]}`)],correctAnswer:0,
+        shortExplanation:`「${term}」とその説明の組合せが正解です。`,
+        detailedExplanation:`${stage}の選択肢では、用語名だけでなく「何を・どのように」行うかを確認します。${definition}`
+      });
+    });
+  });
+  return bank;
+}
+
+QUESTIONS.push(...buildPracticeQuestions());
 
 // 模擬試験用の独自問題。市販書・公開問題の問題文は転載せず、シラバスの頻出論点から作成します。
 const MOCK_SCENARIOS = [
@@ -434,10 +474,13 @@ const MOCK_SCENARIOS = [
 ['development','利用者が業務で使えるかを最終確認するテストは？',['受入テスト','単体テスト','結合テスト','回帰テスト'],0,'利用者側が要求を満たすか確認するのが受入テストです。','注文したものが本当に使えるか、受け取る側が確かめます。','テスト対象と実施者を手掛かりに見分けます。'],
 ['service','障害を暫定復旧した後、根本原因を調べ再発を防ぐ活動は？',['問題管理','インシデント管理','サービスデスク','構成管理'],0,'根本原因の究明と再発防止は問題管理です。','まず火を消すのがインシデント管理、火元を直すのが問題管理です。','復旧と原因除去は目的が違います。'],
 ['audit','監査人が自ら改善プログラムを実装すべきでない理由は？',['独立性を損なうから','監査証拠が増えるから','WBSが作れないから','SLAに違反するから'],0,'実装した本人が後で評価すると自己監査になり、独立性を損ねます。','採点する人が自分で答案を書かないのと同じです。','監査人は評価・助言し、改善の実施は被監査側が担います。']
-].map((q,i)=>({id:`ms${i+1}`,topicId:q[0],question:q[1],options:q[2],correctAnswer:q[3],detailedExplanation:q[4],friendlyExplanation:q[5],supplement:q[6],difficulty:2}));
+].map((q,i)=>({id:`ms${i+1}`,topicId:q[0],question:q[1],options:q[2],correctAnswer:q[3],detailedExplanation:q[4],friendlyExplanation:q[5],supplement:q[6],difficulty:2,level:TOPICS.find(t=>t.id===q[0]).level}));
+
+// 計算・事例判断の問題は、通常ミッションでも段階的に学べるよう共有します。
+QUESTIONS.push(...MOCK_SCENARIOS);
 
 const MOCK_DOMAIN_TARGETS={ストラテジ:35,マネジメント:20,テクノロジ:45};
-const MOCK_BASE_QUESTIONS=QUESTIONS.map(q=>({...q,friendlyExplanation:`やさしく言うと、${q.detailedExplanation}`,supplement:EXAM_GUIDES[q.topicId].examTip}));
+const MOCK_BASE_QUESTIONS=QUESTIONS.filter(q=>q.id.startsWith('q')).map(q=>({...q,friendlyExplanation:`やさしく言うと、${q.detailedExplanation}`,supplement:EXAM_GUIDES[q.topicId].examTip}));
 function buildMockQuestionBank(){
   const bank=[...MOCK_BASE_QUESTIONS,...MOCK_SCENARIOS];
   Object.entries(MOCK_DOMAIN_TARGETS).forEach(([domain,target])=>{
